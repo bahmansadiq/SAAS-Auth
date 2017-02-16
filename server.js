@@ -29,7 +29,7 @@ app.use(passport.initialize());
 //And now we can import our JWT passport strategy. Enter this below our mongoose connection:
 
 // Bring in defined Passport Strategy
-require('./config/passport')(passport);  
+require('./config/passport');  
 //Now we can start on our routes. We will start by creating the route group called apiRoutes. We will now be working down without jumping all over the place in the code. That said, this goes beneath the passport strategy import we just did:
 
 // Create API group routes
@@ -94,8 +94,7 @@ apiRoutes.get('/dashboard', passport.authenticate('jwt', { session: false }), fu
   res.send('It worked! User id is: ' + req.user._id + '.');
 });
 
-
-app.listen(config.port);
 // Set url for API group routes
 app.use('/api', apiRoutes); 
 
+app.listen(config.port);
