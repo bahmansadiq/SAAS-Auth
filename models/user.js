@@ -1,12 +1,14 @@
-const mongoose = require('mongoose'),  
-      Schema = mongoose.Schema,
-      bcrypt = require('bcrypt-nodejs');
+// Connect to database
+var mongoose = require('mongoose');  
+var config = require('../config/main');
+mongoose.connect(config.database);  
+//Now, in our /app/models folder, let's create a new file, user.js. In this file, we will define the schema for our users. We will also hash the users' passwords here with bcrpyt. Keep in mind, we will be using email addresses to register and log users in, not usernames. Feel free to switch that for your own app. Open the new file up and enter the following:
 
 
-//================================
-// User Schema
-//================================
-const UserSchema = new Schema({  
+var bcrypt = require('bcrypt-nodejs');
+
+// Schema defines how the user data will be stored in MongoDB
+var UserSchema = new mongoose.Schema({  
   email: {
     type: String,
     lowercase: true,
@@ -14,53 +16,45 @@ const UserSchema = new Schema({
     required: true
   },
   password: {
-  	
     type: String,
     required: true
   },
-  profile: {
-    firstName: { type: String },
-    lastName: { type: String }
-  },
   role: {
     type: String,
-    enum: ['Member', 'Client', 'Owner', 'Admin'],
-    default: 'Member'
-  },
-  resetPasswordToken: { type: String },
-  resetPasswordExpires: { type: Date }
-},
-{
-  timestamps: true
-});	
-
-// Pre-save of user to database, hash password if password is modified or new
-UserSchema.pre('save', function(next) {  
-  const user = this,
-        SALT_FACTOR = 5;
-
-  if (!user.isModified('password')) return next();
-
-  bcrypt.genSalt(SALT_FACTOR, function(err, salt) {
-    if (err) return next(err);
-
-    bcrypt.hash(user.password, salt, null, function(err, hash) {
-      if (err) return next(err);
-      user.password = hash;
-      next();
-    });
-  });
+    enum: ['Client', 'Manager', 'Admin'],
+    default: 'Client'
+  }
 });
 
+// Saves the user's password hashed (plain text password storage is not good)
+UserSchema.pre('save', function (next) {  
+  var user = this;
+  if (this.isModified('password') || this.isNew) {
+    bcrypt.genSalt(10, function (err, salt) {
+      if (err) {
+        return next(err);
+      }
+      bcrypt.hash(user.password, salt, null, function(err, hash) {
+        if (err) {
+          return next(err);
+        }
+        user.password = hash;
+        next();
+      });
+    });
+  } else {
+    return next();
+  }
+});
 
-// Method to compare password for login
-UserSchema.methods.comparePassword = function(candidatePassword, cb) {  
-  bcrypt.compare(candidatePassword, this.password, function(err, isMatch) {
-    if (err) { return cb(err); }
-
+// Create method to compare password input to password saved in database
+UserSchema.methods.comparePassword = function(pw, cb) {  
+  bcrypt.compare(pw, this.password, function(err, isMatch) {
+    if (err) {
+      return cb(err);
+    }
     cb(null, isMatch);
   });
-}
+};
 
-
-module.exports = mongoose.model('User', UserSchema);  
+module.exports = mongoose.model('User', UserSchema); 
