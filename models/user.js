@@ -1,7 +1,7 @@
 // Connect to database
 var mongoose = require('mongoose');  
-var config = require('../config/main');
-mongoose.connect(config.database);  
+//var config = require('../config/main');
+//mongoose.connect(config.database);  
 //Now, in our /app/models folder, let's create a new file, user.js. In this file, we will define the schema for our users. We will also hash the users' passwords here with bcrpyt. Keep in mind, we will be using email addresses to register and log users in, not usernames. Feel free to switch that for your own app. Open the new file up and enter the following:
 
 
@@ -18,6 +18,10 @@ var UserSchema = new mongoose.Schema({
   password: {
     type: String,
     required: true
+  },
+  profile: {
+    firstName: { type: String },
+    lastName: { type: String }
   },
   role: {
     type: String,

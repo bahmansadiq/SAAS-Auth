@@ -1,5 +1,6 @@
 var express = require('express');
 var  app = express();
+var mongoose= require('mongoose');
 var bodyParser = require('body-parser');  
 var morgan = require('morgan');  
 var passport = require('passport'); 
@@ -15,6 +16,7 @@ app.use(bodyParser.json());
 
 // Log requests to console
 app.use(morgan('dev'));  
+mongoose.connect(config.database);  
 //We will add a quick home page route so I can give a quick demonstration of what morgan does. Add this next.
 // Enable CORS from client-side
 app.use(function(req, res, next) {  
@@ -29,17 +31,13 @@ app.use(passport.initialize());
 //And now we can import our JWT passport strategy. Enter this below our mongoose connection:
 
 // Bring in defined Passport Strategy
-require('./config/passport');  
+require('./config/passport')(passport);  
 //Now we can start on our routes. We will start by creating the route group called apiRoutes. We will now be working down without jumping all over the place in the code. That said, this goes beneath the passport strategy import we just did:
 
 // Create API group routes
 var apiRoutes = express.Router();  
 //Next, we can create our registration route:
 
-// Home route. We'll end up changing this to our main front end index later.
-app.get('/', function(req, res) {  
-  res.send('Relax.... We will put the home page here later.');
-});
 
 
 
@@ -97,4 +95,11 @@ apiRoutes.get('/dashboard', passport.authenticate('jwt', { session: false }), fu
 // Set url for API group routes
 app.use('/api', apiRoutes); 
 
+// Home route. We'll end up changing this to our main front end index later.
+app.get('/', function(req, res) {  
+  res.send('Relax.... We will put the home page here later.');
+});
+
+
 app.listen(config.port);
+console.log("you server is running on port "+ config.port+".");
